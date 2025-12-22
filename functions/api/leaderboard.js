@@ -1,22 +1,16 @@
 export async function onRequestGet({ env }) {
-  let raw = await env.DONATE_KV.get("leaderboard");
+  const raw = await env.DONATE_KV.get("leaderboard", "json");
+  const state = raw || { totals: {} };
 
-  let state;
-  if (!raw) {
-    state = { totals: {} };
-  } else {
-    try {
-      state = JSON.parse(raw);
-    } catch {
-      state = { totals: {} };
-    }
-  }
+  const rows = Object.entries(state.totals)
+    .map(([nick, total]) => ({ nick, total: Number(total) || 0 }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 30);
 
-  const top = Object.entries(state.totals)
-    .map(([nick, total]) => ({ nick, total }))
-    .sort((a, b) => b.total - a.total);
-
-  return new Response(JSON.stringify({ top }), {
-    headers: { "Content-Type": "application/json" }
+  return new Response(JSON.stringify({ top: rows }), {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
   });
 }
