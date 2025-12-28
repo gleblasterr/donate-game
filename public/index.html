@@ -1,192 +1,223 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>DONATE GAME</title>
 
+  <!-- Pixel font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
   <style>
-    body {
-      font-family: system-ui, Arial, sans-serif;
-      max-width: 820px;
-      margin: 32px auto;
-      padding: 0 16px;
-      background: #f7f7f7;
+    :root{
+      --bg:#000;
+      --green:#7CFFB0;
+      --greenDim: rgba(124,255,176,.75);
+      --gold:#FFD84A;
+      --goldDim: rgba(255,216,74,.9);
+      --yellow:#FFD84A;
+      --red:#FF3B3B;
     }
 
-    h1 { margin-bottom: 8px; }
-
-    .card {
-      background: #fff;
-      border: 2px solid #000;
-      border-radius: 14px;
-      padding: 20px;
-      margin: 16px 0;
-      box-shadow: 6px 6px 0 #000;
-      font-family: monospace;
+    *{ box-sizing:border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      background: var(--bg);
+      color: var(--green);
+      font-family: "Press Start 2P", ui-monospace, monospace;
+      text-rendering: geometricPrecision;
+      image-rendering: pixelated;
+      overflow:hidden;
     }
 
-    label { display: block; margin: 10px 0 6px; }
+    /* CRT vibe */
+    .crt::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.04),
+        rgba(255,255,255,0.04) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity:.18;
+      mix-blend-mode: soft-light;
+    }
+    .crt::after{
+      content:"";
+      position:fixed;
+      inset:-40px;
+      pointer-events:none;
+      background: radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.85) 100%);
+      opacity:.9;
+    }
 
-    input {
+    .stage{
+      height:100%;
+      display:grid;
+      place-items:center;
+      padding: 24px 16px;
+    }
+
+    .screen{
+      width:min(980px, 100%);
+      text-align:center;
+      transform: translateZ(0);
+    }
+
+    .title{
+      display:inline-block;
+      margin:0 0 10px 0;
+      font-size: 28px;
+      line-height: 1.1;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow) 40%, #ff8c2a 40%, #ff8c2a 70%, var(--red) 70%, var(--red) 100%);
+      -webkit-background-clip: text;
+      background-clip:text;
+      color: transparent;
+      text-shadow: 0 2px 0 rgba(0,0,0,.6);
+    }
+
+    .subtitle{
+      margin: 0 0 22px 0;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--greenDim);
+      text-transform: uppercase;
+    }
+
+    /* Left board + right action */
+    .layout{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 44px;
+      align-items:start;
+      text-align:left;
+      margin: 0 auto;
+      width:min(980px, 100%);
+    }
+
+    .colTitle{
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--greenDim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .list{
       width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border: 2px solid #000;
-      border-radius: 10px;
-      font-family: monospace;
+      max-width: 520px;
+      margin:0;
+      padding:0;
+      list-style:none;
+      font-size: 12px;
+      line-height: 1.9;
     }
 
-    .row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .row > div { flex: 1; min-width: 220px; }
+    .row{
+      display:grid;
+      grid-template-columns: 34px 1fr 140px;
+      gap: 14px;
+      align-items:baseline;
+      white-space:nowrap;
+    }
 
-    .hint { font-size: 14px; opacity: 0.7; margin-top: 6px; }
+    .rank{ color: var(--greenDim); text-align:right; }
+    .name{ color: var(--green); }
+    .score{
+      color: var(--goldDim);
+      text-align:right;
+    }
 
-    #paypal-button-container { margin-top: 16px; }
+    .right{
+      padding-top: 28px;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap: 16px;
+    }
 
-    footer { margin-top: 40px; font-size: 12px; opacity: 0.5; text-align: center; }
+    .footerText{
+      font-size: 10px;
+      color: var(--greenDim);
+      line-height: 1.7;
+      max-width: 360px;
+    }
+
+    .btn{
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 1px;
+      padding: 12px 18px;
+      border: 2px solid var(--green);
+      color: var(--green);
+      background: transparent;
+      cursor:pointer;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 rgba(124,255,176,.35);
+    }
+    .btn:hover{ filter: brightness(1.08); }
+    .btn:active{
+      transform: translate(2px,2px);
+      box-shadow: 2px 2px 0 rgba(124,255,176,.25);
+    }
+
+    /* Mobile: stack (board then action) */
+    @media (max-width: 860px){
+      .title{ font-size: 22px; }
+      .layout{
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+      .right{
+        padding-top: 0;
+        align-items:center;
+        text-align:center;
+      }
+      .footerText{ max-width: 520px; }
+      .list{ max-width: 620px; }
+    }
   </style>
 </head>
 
-<body>
-  <h1>🎮 DONATE GAME</h1>
-  <p>Поддержи игру донатом</p>
+<body class="crt">
+  <div class="stage">
+    <main class="screen" aria-label="Leaderboard screen">
+      <h1 class="title">DONATE GAME</h1>
+      <div class="subtitle">HALL OF FAME</div>
 
-  <div class="card">
-    <h2>💰 Донат</h2>
+      <section class="layout" aria-label="Leaderboard and donate action">
+        <!-- LEFT: board -->
+        <div>
+          <div class="colTitle">ALL TIME<br>GREATEST</div>
+          <ol class="list" aria-label="All time leaderboard">
+            <li class="row"><span class="rank">1</span><span class="name">DRL</span><span class="score">$999975</span></li>
+            <li class="row"><span class="rank">2</span><span class="name">SAM</span><span class="score">$18315</span></li>
+            <li class="row"><span class="rank">3</span><span class="name">YOU</span><span class="score">$4010</span></li>
+            <li class="row"><span class="rank">4</span><span class="name">PGD</span><span class="score">$14285</span></li>
+            <li class="row"><span class="rank">5</span><span class="name">CRB</span><span class="score">$12520</span></li>
+            <li class="row"><span class="rank">6</span><span class="name">MRS</span><span class="score">$11015</span></li>
+            <li class="row"><span class="rank">7</span><span class="name">ZSR</span><span class="score">$8265</span></li>
+            <li class="row"><span class="rank">8</span><span class="name">TMH</span><span class="score">$6010</span></li>
+          </ol>
+        </div>
 
-    <div class="row">
-      <div>
-        <label for="amount">Сумма (USD)</label>
-        <input id="amount" type="number" min="1" step="1" value="5">
-        <div class="hint">Минимум 1 USD</div>
-      </div>
-
-      <div>
-        <label for="name">Имя в лидерборде</label>
-        <input id="name" type="text" maxlength="24" placeholder="Gleb">
-        <div class="hint">Запишем после успешной оплаты</div>
-      </div>
-    </div>
-
-    <div id="paypal-button-container"></div>
-    <div id="result" class="hint"></div>
-
-    <hr style="margin:16px 0; border:0; border-top:2px solid #000; opacity:.15">
-
-    <h2>🏆 Лидерборд</h2>
-    <div id="leaderboard" class="hint">Пока пусто. Стань первым донатером 🙂</div>
+        <!-- RIGHT: action -->
+        <aside class="right" aria-label="Donate action">
+          <div class="footerText">Donate to appear higher in the leaderboard</div>
+          <button class="btn" type="button">DONATE</button>
+        </aside>
+      </section>
+    </main>
   </div>
-
-  <footer>Donate Game · Sandbox PayPal</footer>
-
-  <!-- PAYPAL SDK -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AaF6KfBHuIJGD6aPWP7M2SfuZGNaR-KqO2Bz9uNXrFckVG2Rs5N1KHDHexSIhHg19fqVh8I8AotWoF_m&currency=USD&intent=capture"></script>
-
-  <script>
-    const amountInput = document.getElementById('amount');
-    const nameInput = document.getElementById('name');
-    const resultEl = document.getElementById('result');
-    const lbEl = document.getElementById('leaderboard');
-
-    const STORAGE_KEY = "donate_game_leaderboard_v1";
-
-    function getAmount() {
-      const v = Number(amountInput.value);
-      if (!Number.isFinite(v) || v < 1) return "1.00";
-      return v.toFixed(2);
-    }
-
-    function safeName() {
-      const s = (nameInput.value || "Anonymous").trim().slice(0, 24);
-      return s || "Anonymous";
-    }
-
-    function escapeHtml(s) {
-      return s.replace(/[&<>"']/g, c => ({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#039;"
-      }[c]));
-    }
-
-    function loadLB() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      } catch {
-        return [];
-      }
-    }
-
-    function saveLB(items) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }
-
-    function renderLB() {
-      const items = loadLB();
-      if (!items.length) {
-        lbEl.textContent = "Пока пусто. Стань первым донатером 🙂";
-        return;
-      }
-
-      const top = items
-        .slice()
-        .sort((a, b) => (b.amount - a.amount) || (b.ts - a.ts))
-        .slice(0, 10);
-
-      lbEl.innerHTML =
-        '<ol style="margin:8px 0 0; padding-left:20px;">' +
-        top.map(x => `<li><b>${escapeHtml(x.name)}</b> — $${Number(x.amount).toFixed(2)}</li>`).join("") +
-        '</ol><div class="hint">Хранится в браузере (localStorage).</div>';
-    }
-
-    function addToLB(name, amount) {
-      const items = loadLB();
-      items.push({ name, amount, ts: Date.now() });
-      saveLB(items);
-      renderLB();
-    }
-
-    renderLB();
-
-    // На всякий: если PayPal SDK не загрузился — покажем понятное сообщение
-    if (typeof paypal === "undefined") {
-      resultEl.textContent = "❌ PayPal SDK не загрузился. Проверь Client ID и консоль.";
-    } else {
-      paypal.Buttons({
-        style: { layout: 'vertical', label: 'donate' },
-
-        createOrder: (data, actions) => {
-          return actions.order.create({
-            purchase_units: [{
-              description: "Donate Game: " + safeName(),
-              amount: { currency_code: "USD", value: getAmount() }
-            }]
-          });
-        },
-
-        onApprove: async (data, actions) => {
-          const details = await actions.order.capture();
-          const payer = details && details.payer && details.payer.name && details.payer.name.given_name
-            ? details.payer.name.given_name
-            : "друг";
-
-          resultEl.textContent = `✅ Спасибо, ${payer}! Донат принят. Order ID: ${data.orderID}`;
-
-          addToLB(safeName(), Number(getAmount()));
-          console.log("PayPal capture details:", details);
-        },
-
-        onCancel: () => { resultEl.textContent = "⛔ Платёж отменён."; },
-
-        onError: (err) => {
-          console.error(err);
-          resultEl.textContent = "❌ Ошибка PayPal. Открой консоль (F12) и пришли текст ошибки.";
-        }
-      }).render('#paypal-button-container');
-    }
-  </script>
 </body>
 </html>
