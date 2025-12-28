@@ -14,9 +14,7 @@
       background: #f7f7f7;
     }
 
-    h1 {
-      margin-bottom: 8px;
-    }
+    h1 { margin-bottom: 8px; }
 
     .card {
       background: #fff;
@@ -28,10 +26,7 @@
       font-family: monospace;
     }
 
-    label {
-      display: block;
-      margin: 10px 0 6px;
-    }
+    label { display: block; margin: 10px 0 6px; }
 
     input {
       width: 100%;
@@ -42,38 +37,18 @@
       font-family: monospace;
     }
 
-    .row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row > div { flex: 1; min-width: 220px; }
 
-    .row > div {
-      flex: 1;
-      min-width: 220px;
-    }
+    .hint { font-size: 14px; opacity: 0.7; margin-top: 6px; }
 
-    .hint {
-      font-size: 14px;
-      opacity: 0.7;
-      margin-top: 6px;
-    }
+    #paypal-button-container { margin-top: 16px; }
 
-    #paypal-button-container {
-      margin-top: 16px;
-    }
-
-    footer {
-      margin-top: 40px;
-      font-size: 12px;
-      opacity: 0.5;
-      text-align: center;
-    }
+    footer { margin-top: 40px; font-size: 12px; opacity: 0.5; text-align: center; }
   </style>
 </head>
 
 <body>
-
   <h1>🎮 DONATE GAME</h1>
   <p>Поддержи игру донатом</p>
 
@@ -90,25 +65,20 @@
       <div>
         <label for="name">Имя в лидерборде</label>
         <input id="name" type="text" maxlength="24" placeholder="Gleb">
-        <div class="hint">Пока просто текст, без сохранения</div>
+        <div class="hint">Запишем после успешной оплаты</div>
       </div>
     </div>
 
     <div id="paypal-button-container"></div>
-
     <div id="result" class="hint"></div>
+
     <hr style="margin:16px 0; border:0; border-top:2px solid #000; opacity:.15">
 
-<h2>🏆 Лидерборд</h2>
-<div id="leaderboard" class="hint">
-  Пока пусто. Стань первым донатером 🙂
-</div>
-
+    <h2>🏆 Лидерборд</h2>
+    <div id="leaderboard" class="hint">Пока пусто. Стань первым донатером 🙂</div>
   </div>
 
-  <footer>
-    Donate Game · Sandbox PayPal
-  </footer>
+  <footer>Donate Game · Sandbox PayPal</footer>
 
   <!-- PAYPAL SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AaF6KfBHuIJGD6aPWP7M2SfuZGNaR-KqO2Bz9uNXrFckVG2Rs5N1KHDHexSIhHg19fqVh8I8AotWoF_m&currency=USD&intent=capture"></script>
@@ -118,19 +88,30 @@
     const nameInput = document.getElementById('name');
     const resultEl = document.getElementById('result');
     const lbEl = document.getElementById('leaderboard');
-  
+
     const STORAGE_KEY = "donate_game_leaderboard_v1";
-  
+
     function getAmount() {
       const v = Number(amountInput.value);
       if (!Number.isFinite(v) || v < 1) return "1.00";
       return v.toFixed(2);
     }
-  
+
     function safeName() {
-      return (nameInput.value || "Anonymous").trim().slice(0, 24) || "Anonymous";
+      const s = (nameInput.value || "Anonymous").trim().slice(0, 24);
+      return s || "Anonymous";
     }
-  
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+      }[c]));
+    }
+
     function loadLB() {
       try {
         return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -138,89 +119,74 @@
         return [];
       }
     }
-  
+
     function saveLB(items) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
-  
+
     function renderLB() {
       const items = loadLB();
       if (!items.length) {
         lbEl.textContent = "Пока пусто. Стань первым донатером 🙂";
         return;
       }
-  
+
       const top = items
-        .sort((a, b) => b.amount - a.amount || b.ts - a.ts)
+        .slice()
+        .sort((a, b) => (b.amount - a.amount) || (b.ts - a.ts))
         .slice(0, 10);
-  
-      lbEl.innerHTML = `
-        <ol style="margin:8px 0 0; padding-left:20px;">
-          ${top.map(x =>
-            `<li><b>${escapeHtml(x.name)}</b> — $${x.amount.toFixed(2)}</li>`
-          ).join("")}
-        </ol>
-        <div class="hint">Хранится в браузере (localStorage).</div>
-      `;
+
+      lbEl.innerHTML =
+        '<ol style="margin:8px 0 0; padding-left:20px;">' +
+        top.map(x => `<li><b>${escapeHtml(x.name)}</b> — $${Number(x.amount).toFixed(2)}</li>`).join("") +
+        '</ol><div class="hint">Хранится в браузере (localStorage).</div>';
     }
-  
+
     function addToLB(name, amount) {
       const items = loadLB();
       items.push({ name, amount, ts: Date.now() });
       saveLB(items);
       renderLB();
     }
-  
-    function escapeHtml(s) {
-      return s.replace(/[&<>"']/g, c => ({
-        "&":"&amp;", "<":"&lt;", ">":"&gt;",
-        '"':"&quot;", "'":"&#039;"
-      }[c]));
-    }
-  
-    renderLB();
-  
-    paypal.Buttons({
-      style: { layout: 'vertical', label: 'donate' },
-  
-      createOrder: (data, actions) => {
-        return actions.order.create({
-          purchase_units: [{
-            description: `Donate Game: ${safeName()}`,
-            amount: {
-              currency_code: "USD",
-              value: getAmount()
-            }
-          }]
-        });
-      },
-  
-      onApprove: async (data, actions) => {
-        const details = await actions.order.capture();
-        const payer = details?.payer?.name?.given_name || "друг";
-        const amount = Number(getAmount());
-        const name = safeName();
-  
-        resultEl.textContent =
-          `✅ Спасибо, ${payer}! Донат принят. Order ID: ${data.orderID}`;
-  
-        addToLB(name, amount);
-  
-        console.log("PayPal capture details:", details);
-      },
-  
-      onCancel: () => {
-        resultEl.textContent = "⛔ Платёж отменён.";
-      },
-  
-      onError: (err) => {
-        console.error(err);
-        resultEl.textContent =
-          "❌ Ошибка PayPal. Открой консоль (F12) и пришли текст ошибки.";
-      }
-    }).render('#paypal-button-container');
-  </script>
-  
 
+    renderLB();
+
+    // На всякий: если PayPal SDK не загрузился — покажем понятное сообщение
+    if (typeof paypal === "undefined") {
+      resultEl.textContent = "❌ PayPal SDK не загрузился. Проверь Client ID и консоль.";
+    } else {
+      paypal.Buttons({
+        style: { layout: 'vertical', label: 'donate' },
+
+        createOrder: (data, actions) => {
+          return actions.order.create({
+            purchase_units: [{
+              description: "Donate Game: " + safeName(),
+              amount: { currency_code: "USD", value: getAmount() }
+            }]
+          });
+        },
+
+        onApprove: async (data, actions) => {
+          const details = await actions.order.capture();
+          const payer = details && details.payer && details.payer.name && details.payer.name.given_name
+            ? details.payer.name.given_name
+            : "друг";
+
+          resultEl.textContent = `✅ Спасибо, ${payer}! Донат принят. Order ID: ${data.orderID}`;
+
+          addToLB(safeName(), Number(getAmount()));
+          console.log("PayPal capture details:", details);
+        },
+
+        onCancel: () => { resultEl.textContent = "⛔ Платёж отменён."; },
+
+        onError: (err) => {
+          console.error(err);
+          resultEl.textContent = "❌ Ошибка PayPal. Открой консоль (F12) и пришли текст ошибки.";
+        }
+      }).render('#paypal-button-container');
+    }
+  </script>
 </body>
 </html>
