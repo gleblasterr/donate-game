@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>DONATE GAME</title>
 
-  <!-- Pixel font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -14,11 +13,11 @@
     :root{
       --bg:#000;
       --green:#7CFFB0;
-      --greenDim: rgba(124,255,176,.75);
+      --greenDim: rgba(124,255,176,.78);
+      --greenGlow: rgba(124,255,176,.45);
       --gold:#FFD84A;
-      --goldDim: rgba(255,216,74,.9);
-      --yellow:#FFD84A;
-      --red:#FF3B3B;
+      --goldGlow: rgba(255,216,74,.35);
+      --neonGlow: rgba(124,255,176,.6);
     }
 
     *{ box-sizing:border-box; }
@@ -28,12 +27,11 @@
       background: var(--bg);
       color: var(--green);
       font-family: "Press Start 2P", ui-monospace, monospace;
-      text-rendering: geometricPrecision;
       image-rendering: pixelated;
       overflow:hidden;
     }
 
-    /* CRT vibe */
+    /* CRT */
     .crt::before{
       content:"";
       position:fixed;
@@ -47,7 +45,6 @@
         transparent 4px
       );
       opacity:.18;
-      mix-blend-mode: soft-light;
     }
     .crt::after{
       content:"";
@@ -55,101 +52,114 @@
       inset:-40px;
       pointer-events:none;
       background: radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.85) 100%);
-      opacity:.9;
     }
 
     .stage{
       height:100%;
       display:grid;
       place-items:center;
-      padding: 24px 16px;
+      padding: 28px 16px;
     }
 
     .screen{
-      width:min(980px, 100%);
-      text-align:center;
-      transform: translateZ(0);
+      width:min(1040px, 100%);
     }
 
+    /* LOGO TOP */
+    .titleWrap{
+      text-align:center;
+      margin-bottom: 64px; /* more space between header and board */
+    }
     .title{
-      display:inline-block;
-      margin:0 0 10px 0;
-      font-size: 28px;
-      line-height: 1.1;
+      margin:0;
+      font-size: 30px;
       letter-spacing: 1px;
       text-transform: uppercase;
-      background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow) 40%, #ff8c2a 40%, #ff8c2a 70%, var(--red) 70%, var(--red) 100%);
+      background: linear-gradient(180deg, #FFD84A 0%, #FF8C2A 55%, #FF3B3B 100%);
       -webkit-background-clip: text;
       background-clip:text;
       color: transparent;
-      text-shadow: 0 2px 0 rgba(0,0,0,.6);
+      text-shadow: 0 2px 0 rgba(0,0,0,.7);
+      display:inline-block;
     }
 
-    .subtitle{
-      margin: 0 0 22px 0;
-      font-size: 12px;
-      letter-spacing: 2px;
-      color: var(--greenDim);
-      text-transform: uppercase;
-    }
-
-    /* Left board + right action */
     .layout{
       display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap: 44px;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 56px;
       align-items:start;
-      text-align:left;
-      margin: 0 auto;
-      width:min(980px, 100%);
     }
 
     .colTitle{
-      font-size: 12px;
+      font-size: 13px;
       letter-spacing: 1px;
       color: var(--greenDim);
+      margin-bottom: 16px;
       text-transform: uppercase;
-      margin-bottom: 12px;
-      line-height: 1.6;
     }
 
+    /* BIGGER BOARD */
     .list{
-      width: 100%;
-      max-width: 520px;
       margin:0;
       padding:0;
       list-style:none;
-      font-size: 12px;
-      line-height: 1.9;
+      font-size: 14px;
+      line-height: 2.05;
+      max-width: 620px;
     }
 
     .row{
       display:grid;
-      grid-template-columns: 34px 1fr 140px;
-      gap: 14px;
+      grid-template-columns: 34px 1fr 170px;
+      gap: 18px;
       align-items:baseline;
       white-space:nowrap;
     }
 
-    .rank{ color: var(--greenDim); text-align:right; }
-    .name{ color: var(--green); }
-    .score{
-      color: var(--goldDim);
+    .rank{
+      color: var(--greenDim);
       text-align:right;
     }
 
+    .name{
+      color: var(--green);
+      text-shadow: 0 0 6px rgba(0,0,0,.6);
+    }
+
+    .score{
+      color: var(--gold);
+      text-align:right;
+      text-shadow: 0 0 8px var(--goldGlow);
+    }
+
+    /* FIRST PLACE: bigger + stronger glow for name and score */
+    .row.first{
+      font-size: 18px;
+      line-height: 2.0;
+    }
+    .row.first .name{
+      text-shadow:
+        0 0 10px var(--greenGlow),
+        0 0 18px rgba(124,255,176,.25);
+    }
+    .row.first .score{
+      text-shadow:
+        0 0 10px var(--goldGlow),
+        0 0 18px rgba(255,216,74,.25);
+    }
+
+    /* RIGHT SIDE (aligned with first row) */
     .right{
-      padding-top: 28px;
+      padding-top: 31px; /* align donate text with #1 row */
       display:flex;
       flex-direction:column;
-      align-items:flex-start;
-      gap: 16px;
+      gap: 22px;
     }
 
     .footerText{
       font-size: 10px;
       color: var(--greenDim);
-      line-height: 1.7;
+      line-height: 1.8;
       max-width: 360px;
     }
 
@@ -157,50 +167,59 @@
       font-family: inherit;
       font-size: 12px;
       letter-spacing: 1px;
-      padding: 12px 18px;
+      padding: 14px 22px;
       border: 2px solid var(--green);
       color: var(--green);
       background: transparent;
       cursor:pointer;
       text-transform: uppercase;
-      box-shadow: 4px 4px 0 rgba(124,255,176,.35);
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,1),
+        0 0 14px var(--neonGlow);
     }
-    .btn:hover{ filter: brightness(1.08); }
+    .btn:hover{
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,1),
+        0 0 22px var(--neonGlow),
+        0 0 40px rgba(124,255,176,.35);
+    }
     .btn:active{
       transform: translate(2px,2px);
-      box-shadow: 2px 2px 0 rgba(124,255,176,.25);
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,1),
+        0 0 10px var(--neonGlow);
     }
 
-    /* Mobile: stack (board then action) */
-    @media (max-width: 860px){
-      .title{ font-size: 22px; }
+    @media (max-width: 920px){
+      .title{ font-size: 24px; }
+      .titleWrap{ margin-bottom: 28px; }
       .layout{
         grid-template-columns: 1fr;
-        gap: 22px;
+        gap: 26px;
       }
       .right{
         padding-top: 0;
         align-items:center;
         text-align:center;
       }
-      .footerText{ max-width: 520px; }
-      .list{ max-width: 620px; }
+      .list{ max-width: 720px; }
+      .row{ grid-template-columns: 34px 1fr 150px; }
     }
   </style>
 </head>
 
 <body class="crt">
   <div class="stage">
-    <main class="screen" aria-label="Leaderboard screen">
-      <h1 class="title">DONATE GAME</h1>
-      <div class="subtitle">HALL OF FAME</div>
+    <main class="screen">
+      <div class="titleWrap">
+        <h1 class="title">DONATE GAME</h1>
+      </div>
 
-      <section class="layout" aria-label="Leaderboard and donate action">
-        <!-- LEFT: board -->
+      <section class="layout">
         <div>
-          <div class="colTitle">ALL TIME<br>GREATEST</div>
-          <ol class="list" aria-label="All time leaderboard">
-            <li class="row"><span class="rank">1</span><span class="name">DRL</span><span class="score">$999975</span></li>
+          <div class="colTitle">ALL TIME GREATEST</div>
+          <ol class="list">
+            <li class="row first"><span class="rank">1</span><span class="name">DRL</span><span class="score">$999975</span></li>
             <li class="row"><span class="rank">2</span><span class="name">SAM</span><span class="score">$18315</span></li>
             <li class="row"><span class="rank">3</span><span class="name">YOU</span><span class="score">$4010</span></li>
             <li class="row"><span class="rank">4</span><span class="name">PGD</span><span class="score">$14285</span></li>
@@ -211,10 +230,9 @@
           </ol>
         </div>
 
-        <!-- RIGHT: action -->
-        <aside class="right" aria-label="Donate action">
-          <div class="footerText">Donate to appear higher in the leaderboard</div>
-          <button class="btn" type="button">DONATE</button>
+        <aside class="right">
+          <div class="footerText">Donate to appear higher in&nbsp;the&nbsp;leaderboard</div>
+          <button class="btn">DONATE</button>
         </aside>
       </section>
     </main>
