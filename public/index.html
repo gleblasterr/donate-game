@@ -205,6 +205,216 @@
       .list{ max-width: 720px; }
       .row{ grid-template-columns: 34px 1fr 150px; }
     }
+
+    /* MODAL */
+    .modal{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
+      display:grid;
+      place-items:center;
+      z-index:1000;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    .modal[hidden]{ display:none; }
+
+    @keyframes modalFadeIn{
+      from{ opacity:0; }
+      to{ opacity:1; }
+    }
+
+    .modal-content{
+      background: var(--bg);
+      border: 2px solid var(--green);
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,1),
+        0 0 30px var(--neonGlow),
+        0 0 60px rgba(124,255,176,.2);
+      padding: 32px;
+      max-width: 460px;
+      width: calc(100% - 32px);
+      position:relative;
+      animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes modalSlideIn{
+      from{ transform:translateY(-30px); opacity:0; }
+      to{ transform:translateY(0); opacity:1; }
+    }
+
+    .modal-close{
+      position:absolute;
+      top:16px;
+      right:16px;
+      background:transparent;
+      border:none;
+      color: var(--greenDim);
+      font-size:28px;
+      line-height:1;
+      cursor:pointer;
+      padding:4px 8px;
+      font-family:inherit;
+    }
+    .modal-close:hover{ color: var(--green); }
+
+    .modal-title{
+      margin:0 0 28px;
+      font-size:16px;
+      color: var(--gold);
+      text-align:center;
+      letter-spacing:2px;
+    }
+
+    .donate-form{
+      display:flex;
+      flex-direction:column;
+      gap:22px;
+    }
+
+    .form-field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .form-field label{
+      font-size:9px;
+      color: var(--greenDim);
+      letter-spacing:1px;
+    }
+
+    .form-field input{
+      font-family:inherit;
+      font-size:12px;
+      padding:12px 14px;
+      background: rgba(0,0,0,0.6);
+      border:1px solid var(--greenDim);
+      color: var(--green);
+      outline:none;
+    }
+
+    .form-field input:focus{
+      border-color: var(--green);
+      box-shadow: 0 0 8px var(--greenGlow);
+    }
+
+    .form-field input::placeholder{
+      color: rgba(124,255,176,0.35);
+      font-size:10px;
+    }
+
+    .field-hint{
+      font-size:8px;
+      color: rgba(124,255,176,0.5);
+      letter-spacing:0.5px;
+    }
+
+    .form-error{
+      font-size:9px;
+      color:#FF3B3B;
+      min-height:18px;
+      text-align:center;
+    }
+
+    .btn-primary{ margin-top:8px; }
+
+    .btn-loading{ display:none; }
+    .btn.loading .btn-text{ display:none; }
+    .btn.loading .btn-loading{ display:inline; }
+    .btn.loading{
+      opacity:0.6;
+      cursor:wait;
+    }
+
+    /* ANIMATIONS */
+    @keyframes newDonationAppear{
+      0%{ opacity:0; transform:translateX(-30px) scale(0.95); }
+      60%{ transform:translateX(5px) scale(1.02); }
+      100%{ opacity:1; transform:translateX(0) scale(1); }
+    }
+    .row-new{ animation: newDonationAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    @keyframes scoreBump{
+      0%{ transform:scale(1); }
+      50%{ transform:scale(1.15); text-shadow: 0 0 16px var(--goldGlow); }
+      100%{ transform:scale(1); }
+    }
+    .score-bump{ animation: scoreBump 0.6s ease-out; }
+
+    @keyframes firstPlaceGlow{
+      0%, 100%{
+        text-shadow: 0 0 10px var(--goldGlow), 0 0 18px rgba(255,216,74,.25);
+      }
+      50%{
+        text-shadow: 0 0 20px var(--goldGlow), 0 0 35px rgba(255,216,74,.4);
+      }
+    }
+    .row.first .score{ animation: firstPlaceGlow 3s ease-in-out infinite; }
+
+    /* MOBILE ENHANCEMENTS */
+    @media (max-width: 640px){
+      .btn{
+        font-size:14px;
+        padding:18px 28px;
+        width:100%;
+      }
+      .form-field input{
+        padding:16px 14px;
+        font-size:16px;
+      }
+      .modal-close{ padding:8px 12px; }
+      .stage{ padding:16px 12px; }
+      .modal-content{
+        padding:24px 20px;
+        width:calc(100% - 24px);
+      }
+      .title{ font-size:20px; }
+      .row{
+        grid-template-columns:28px 1fr 120px;
+        gap:12px;
+        font-size:12px;
+      }
+      .row.first{ font-size:15px; }
+      .name{
+        overflow:hidden;
+        text-overflow:ellipsis;
+      }
+    }
+
+    @media (max-width: 920px) and (orientation: landscape){
+      .stage{ padding:16px; }
+      .titleWrap{ margin-bottom:16px; }
+      .list{
+        font-size:12px;
+        line-height:1.8;
+      }
+    }
+
+    /* SAFE AREA SUPPORT */
+    .stage{
+      padding: max(28px, env(safe-area-inset-top))
+               max(16px, env(safe-area-inset-right))
+               max(28px, env(safe-area-inset-bottom))
+               max(16px, env(safe-area-inset-left));
+    }
+
+    body{
+      overflow-x:hidden;
+      width:100%;
+    }
+
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border-width:0;
+    }
   </style>
 </head>
 
@@ -218,7 +428,7 @@
       <section class="layout">
         <div>
           <div class="colTitle">ALL TIME GREATEST</div>
-          <ol class="list">
+          <ol class="list" aria-label="Donation leaderboard">
             <li class="row first"><span class="rank">1</span><span class="name">DRL</span><span class="score">$999975</span></li>
             <li class="row"><span class="rank">2</span><span class="name">SAM</span><span class="score">$18315</span></li>
             <li class="row"><span class="rank">3</span><span class="name">YOU</span><span class="score">$4010</span></li>
@@ -237,5 +447,58 @@
       </section>
     </main>
   </div>
+
+  <!-- DONATE MODAL -->
+  <div id="donateModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-modal="true" hidden>
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h2 id="modalTitle" class="modal-title">ENTER GAME</h2>
+      <form id="donateForm" class="donate-form">
+        <div class="form-field">
+          <label for="nick">PLAYER NAME</label>
+          <input
+            type="text"
+            id="nick"
+            name="nick"
+            placeholder="MAX 24 CHARS"
+            maxlength="24"
+            pattern="[a-zA-Z0-9_-]+"
+            aria-describedby="nickHint"
+            aria-required="true"
+            required
+          />
+          <span id="nickHint" class="field-hint">A-Z, 0-9, _ - ONLY</span>
+        </div>
+
+        <div class="form-field">
+          <label for="amount">DONATION AMOUNT</label>
+          <input
+            type="number"
+            id="amount"
+            name="amount"
+            placeholder="MIN $1"
+            min="1"
+            max="100000"
+            step="1"
+            aria-describedby="amountHint"
+            aria-required="true"
+            required
+          />
+          <span id="amountHint" class="field-hint">USD, WHOLE DOLLARS</span>
+        </div>
+
+        <div class="form-error" id="formError" role="alert" aria-live="assertive"></div>
+
+        <div id="formStatus" class="sr-only" role="status" aria-live="polite"></div>
+
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-text">PAY NOW</span>
+          <span class="btn-loading" hidden>LOADING...</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="main.js" defer></script>
 </body>
 </html>

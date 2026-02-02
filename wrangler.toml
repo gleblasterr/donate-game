@@ -1,0 +1,32 @@
+name = "donate-game"
+compatibility_date = "2024-01-01"
+
+pages_build_output_dir = "public"
+
+# KV namespace для хранения лидерборда
+# Создать через: wrangler kv:namespace create DONATE_KV
+# Скопировать ID из output и заменить ниже
+[[kv_namespaces]]
+binding = "DONATE_KV"
+id = "136b002b3b314090a05c9667ab168555"
+
+# Public переменные окружения
+[env.production.vars]
+APP_BASE_URL = "https://your-domain.pages.dev"
+
+# ВАЖНО: Секреты устанавливаются через Cloudflare dashboard
+# (НЕ коммитить их в git!)
+#
+# Зайти в: Cloudflare Dashboard > Pages > donate-game > Settings > Environment variables
+#
+# Добавить следующие секреты:
+# - PAYPAL_CLIENT_ID       (из PayPal Developer Dashboard)
+# - PAYPAL_SECRET          (из PayPal Developer Dashboard)
+# - PAYPAL_BASE_URL        (https://api-m.sandbox.paypal.com для sandbox, https://api-m.paypal.com для production)
+# - PAYPAL_WEBHOOK_ID      (создаётся в PayPal Developer Dashboard > Webhooks)
+#
+# Или через CLI:
+# wrangler secret put PAYPAL_CLIENT_ID
+# wrangler secret put PAYPAL_SECRET
+# wrangler secret put PAYPAL_BASE_URL
+# wrangler secret put PAYPAL_WEBHOOK_ID
