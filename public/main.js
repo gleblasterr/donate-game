@@ -77,10 +77,22 @@ function openDonateModal() {
   const modal = document.getElementById('donateModal');
   modal.hidden = false;
 
+  // Update modal title if in mock mode
+  const modalTitle = document.getElementById('modalTitle');
+  if (modalTitle && isMockMode) {
+    modalTitle.textContent = 'ENTER GAME (TEST MODE)';
+  }
+
+  // Update button text if in mock mode
+  const submitBtn = modal.querySelector('.btn-primary');
+  if (submitBtn && isMockMode) {
+    submitBtn.textContent = 'TEST DONATE';
+  }
+
   // Focus first input
   const firstInput = modal.querySelector('input');
   if (firstInput) {
-    setTimeout(() => firstInput.focus(), 100);
+    setTimeout(() => firstInput.focus(), 150);
   }
 
   // Trap focus within modal
@@ -98,6 +110,18 @@ function closeDonateModal() {
   showFormError('');
   setFormLoading(false);
 
+  // Reset modal title
+  const modalTitle = document.getElementById('modalTitle');
+  if (modalTitle) {
+    modalTitle.textContent = 'ENTER GAME';
+  }
+
+  // Reset button text
+  const submitBtn = modal.querySelector('.btn-primary');
+  if (submitBtn) {
+    submitBtn.textContent = 'DONATE NOW';
+  }
+
   // Return focus to trigger button
   if (donateButton) {
     donateButton.focus();
@@ -105,6 +129,9 @@ function closeDonateModal() {
 }
 
 // ==================== PAYPAL FLOW ====================
+
+// Check if mock mode is enabled via URL parameter
+const isMockMode = new URLSearchParams(window.location.search).has('mock');
 
 async function createPayPalOrder(nick, amount) {
   const res = await fetch('/api/create-order', {
@@ -116,6 +143,21 @@ async function createPayPalOrder(nick, amount) {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || 'Failed to create order');
+  }
+
+  return await res.json();
+}
+
+async function mockDonate(nick, amount) {
+  const res = await fetch('/api/mock-donate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nick, amount }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Mock donation failed');
   }
 
   return await res.json();
@@ -154,14 +196,29 @@ async function handleDonateSubmit(e) {
       throw new Error('NETWORK');
     }
 
-    const { approveUrl } = await createPayPalOrder(nick, amount);
+    if (isMockMode) {
+      // Mock mode: instantly add donation without PayPal
+      await mockDonate(nick, amount);
 
-    if (!approveUrl) {
-      throw new Error('No approval URL returned');
+      // Close modal and show success
+      closeDonateModal();
+
+      // Trigger immediate leaderboard refresh
+      setTimeout(() => {
+        pollLeaderboard();
+      }, 500);
+
+    } else {
+      // Real mode: redirect to PayPal
+      const { approveUrl } = await createPayPalOrder(nick, amount);
+
+      if (!approveUrl) {
+        throw new Error('No approval URL returned');
+      }
+
+      // Redirect to PayPal
+      window.location.href = approveUrl;
     }
-
-    // Redirect to PayPal
-    window.location.href = approveUrl;
 
   } catch (error) {
     setFormLoading(false);
@@ -211,7 +268,7 @@ function renderLeaderboard(data) {
     }
 
     li.innerHTML = `
-      <span class="rank">${rank}</span>
+      <span class="rank">${rank}.</span>
       <span class="name">${row.nick}</span>
       <span class="score${scoreChanged ? ' score-bump' : ''}">$${Math.floor(row.total)}</span>
     `;
@@ -227,7 +284,7 @@ function renderLeaderboard(data) {
     list.querySelectorAll('.score-bump').forEach(el => {
       el.classList.remove('score-bump');
     });
-  }, 600);
+  }, 300);
 
   // Store current data for next comparison
   previousLeaderboard = current.map(r => ({ nick: r.nick, total: r.total }));
@@ -266,6 +323,12 @@ function stopPolling() {
 }
 
 function init() {
+  // Log mode
+  if (isMockMode) {
+    console.log('🧪 MOCK MODE ENABLED - donations will be added instantly without PayPal');
+    console.log('💡 Remove ?mock=1 from URL to use real PayPal integration');
+  }
+
   // Get donate button
   donateButton = document.querySelector('.btn');
 
