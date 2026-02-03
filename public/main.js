@@ -80,7 +80,7 @@ function openDonateModal() {
   // Update modal title if in mock mode
   const modalTitle = document.getElementById('modalTitle');
   if (modalTitle && isMockMode) {
-    modalTitle.textContent = 'ENTER GAME (TEST MODE)';
+    modalTitle.textContent = 'DONATE (TEST MODE)';
   }
 
   // Update button text if in mock mode
@@ -101,31 +101,86 @@ function openDonateModal() {
 
 function closeDonateModal() {
   const modal = document.getElementById('donateModal');
-  modal.hidden = true;
-  modal.removeEventListener('keydown', trapFocus);
 
-  // Clear form
-  const form = document.getElementById('donateForm');
-  form.reset();
-  showFormError('');
-  setFormLoading(false);
+  // Add closing animation
+  modal.classList.add('closing');
 
-  // Reset modal title
-  const modalTitle = document.getElementById('modalTitle');
-  if (modalTitle) {
-    modalTitle.textContent = 'ENTER GAME';
+  // Wait for animation to complete
+  setTimeout(() => {
+    modal.hidden = true;
+    modal.classList.remove('closing');
+    modal.removeEventListener('keydown', trapFocus);
+
+    // Clear form
+    const form = document.getElementById('donateForm');
+    form.reset();
+    showFormError('');
+    setFormLoading(false);
+
+    // Reset modal title
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) {
+      modalTitle.textContent = 'DONATE';
+    }
+
+    // Reset button text
+    const submitBtn = modal.querySelector('.btn-primary');
+    if (submitBtn) {
+      submitBtn.textContent = 'DONATE NOW';
+    }
+
+    // Return focus to trigger button
+    if (donateButton) {
+      donateButton.focus();
+    }
+  }, 250); // Match animation duration
+}
+
+// ==================== NICKNAME CHECK ====================
+
+async function checkNickExists(nick) {
+  try {
+    const res = await fetch('/api/leaderboard', { cache: 'no-store' });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const existing = data.top?.find(entry => entry.nick.toLowerCase() === nick.toLowerCase());
+    return existing ? existing.total : null;
+  } catch (e) {
+    console.error('Failed to check nick:', e);
+    return null;
   }
+}
 
-  // Reset button text
-  const submitBtn = modal.querySelector('.btn-primary');
-  if (submitBtn) {
-    submitBtn.textContent = 'DONATE NOW';
-  }
+function setupNickCheck() {
+  const nickInput = document.getElementById('nick');
+  const nickHint = document.getElementById('nickHint');
 
-  // Return focus to trigger button
-  if (donateButton) {
-    donateButton.focus();
-  }
+  if (!nickInput || !nickHint) return;
+
+  let checkTimeout;
+
+  nickInput.addEventListener('input', () => {
+    clearTimeout(checkTimeout);
+
+    const nick = sanitizeNick(nickInput.value);
+    if (nick.length < 2) {
+      nickHint.textContent = 'MAX 24, A-Z, 0-9, _ - ONLY';
+      nickHint.style.color = '';
+      return;
+    }
+
+    checkTimeout = setTimeout(async () => {
+      const existingTotal = await checkNickExists(nick);
+      if (existingTotal !== null) {
+        nickHint.textContent = `ALREADY DONATED: $${Math.floor(existingTotal)}. ADD MORE?`;
+        nickHint.style.color = 'var(--gold)';
+      } else {
+        nickHint.textContent = 'MAX 24, A-Z, 0-9, _ - ONLY';
+        nickHint.style.color = '';
+      }
+    }, 500);
+  });
 }
 
 // ==================== PAYPAL FLOW ====================
@@ -370,6 +425,9 @@ function init() {
   if (donateForm) {
     donateForm.addEventListener('submit', handleDonateSubmit);
   }
+
+  // Setup nick check
+  setupNickCheck();
 
   // Start polling leaderboard
   startPolling();

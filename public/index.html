@@ -35,28 +35,7 @@
       overflow:hidden;
     }
 
-    /* CRT */
-    .crt::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,0.035),
-        rgba(255,255,255,0.035) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-      opacity:.22;
-    }
-    .crt::after{
-      content:"";
-      position:fixed;
-      inset:-40px;
-      pointer-events:none;
-      background: radial-gradient(circle at 50% 45%, transparent 35%, rgba(0,0,0,.65) 72%, rgba(0,0,0,.92) 100%);
-    }
+
 
     .stage{
       min-height:100%;
@@ -64,7 +43,11 @@
       flex-direction:column;
       align-items:center;
       padding: 24px 20px;
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
     }
+
 
     .screen{
       width:min(640px, 100%);
@@ -214,7 +197,7 @@
     .modal{
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,0.85);
+      background: var(--bg);
       backdrop-filter: blur(8px);
       display:grid;
       place-items:center;
@@ -234,13 +217,27 @@
       }
     }
 
+    @keyframes modalFadeOut{
+      from{
+        opacity: 1;
+        backdrop-filter: blur(8px);
+      }
+      to{
+        opacity: 0;
+        backdrop-filter: blur(0px);
+      }
+    }
+
+    .modal.closing{
+      animation: modalFadeOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
     .modal-content{
       background: var(--bg);
       border: 2px solid var(--green);
       box-shadow:
         0 0 0 2px rgba(0,0,0,1),
-        0 10px 40px rgba(0,0,0,0.7),
-        0 0 24px var(--neonGlow);
+        0 10px 40px rgba(0,0,0,0.7);
       padding: 40px 32px;
       max-width: 420px;
       width: calc(100% - 32px);
@@ -262,6 +259,23 @@
       }
     }
 
+    @keyframes modalSlideOut{
+      from{
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+      }
+      to{
+        transform: translateY(-30px) scale(0.96);
+        opacity: 0;
+        filter: blur(4px);
+      }
+    }
+
+    .modal.closing .modal-content{
+      animation: modalSlideOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
     .modal-close{
       position:absolute;
       top:16px;
@@ -280,7 +294,7 @@
     .modal-title{
       margin:0 0 36px;
       font-size:18px;
-      color: var(--gold);
+      color: var(--green);
       text-align:center;
       letter-spacing:3px;
     }
@@ -494,7 +508,7 @@
   <div id="donateModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-modal="true" hidden>
     <div class="modal-content">
       <button class="modal-close" aria-label="Close">&times;</button>
-      <h2 id="modalTitle" class="modal-title">ENTER GAME</h2>
+      <h2 id="modalTitle" class="modal-title">DONATE</h2>
       <form id="donateForm" class="donate-form">
         <div class="form-field">
           <label for="nick">PLAYER NAME</label>
@@ -502,14 +516,14 @@
             type="text"
             id="nick"
             name="nick"
-            placeholder="MAX 24 CHARS"
+            placeholder=""
             maxlength="24"
             pattern="[a-zA-Z0-9_-]+"
             aria-describedby="nickHint"
             aria-required="true"
             required
           />
-          <span id="nickHint" class="field-hint">A-Z, 0-9, _ - ONLY</span>
+          <span id="nickHint" class="field-hint">MAX 24, A-Z, 0-9, _ - ONLY</span>
         </div>
 
         <div class="form-field">
@@ -518,7 +532,7 @@
             type="number"
             id="amount"
             name="amount"
-            placeholder="MIN $1"
+            placeholder=""
             min="1"
             max="100000"
             step="1"
@@ -526,7 +540,7 @@
             aria-required="true"
             required
           />
-          <span id="amountHint" class="field-hint">USD, WHOLE DOLLARS</span>
+          <span id="amountHint" class="field-hint"></span>
         </div>
 
         <div class="form-error" id="formError" role="alert" aria-live="assertive"></div>
