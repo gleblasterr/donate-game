@@ -35,8 +35,7 @@ function showFormError(message) {
   }, 5000);
 }
 
-function setFormLoading(isLoading) {
-  const btn = document.querySelector('.btn-primary');
+function setFormLoading(isLoading, btn) {
   const status = document.getElementById('formStatus');
 
   if (isLoading) {
@@ -297,8 +296,9 @@ async function handleCryptoPayment() {
   const values = getFormValues();
   if (!values) return;
 
+  const btn = document.getElementById('payCrypto');
   try {
-    setFormLoading(true);
+    setFormLoading(true, btn);
 
     if (!navigator.onLine) throw new Error('NETWORK');
 
@@ -314,7 +314,7 @@ async function handleCryptoPayment() {
 
     window.location.href = checkoutUrl;
   } catch (error) {
-    setFormLoading(false);
+    setFormLoading(false, btn);
     console.error('Crypto payment error:', error);
 
     if (error.message === 'NETWORK' || !navigator.onLine) {
@@ -331,8 +331,9 @@ async function handleDonateSubmit(e) {
   const values = getFormValues();
   if (!values) return;
 
+  const btn = document.querySelector('.btn-paypal');
   try {
-    setFormLoading(true);
+    setFormLoading(true, btn);
 
     if (!navigator.onLine) throw new Error('NETWORK');
 
@@ -348,7 +349,7 @@ async function handleDonateSubmit(e) {
 
     window.location.href = approveUrl;
   } catch (error) {
-    setFormLoading(false);
+    setFormLoading(false, btn);
     console.error('Donation error:', error);
 
     if (error.message === 'NETWORK' || !navigator.onLine) {
@@ -403,7 +404,7 @@ function renderLeaderboard(data) {
 
     li.innerHTML = `
       <span class="rank">${rank}.</span>
-      <span class="name">${row.nick}</span>
+      <span class="name">${row.nick}</span><span class="dots">........................................</span>
       <span class="score${scoreChanged ? ' score-bump' : ''}">$${Math.floor(row.total)}</span>
     `;
 

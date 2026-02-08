@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>DONATE GAME</title>
 
+  <meta name="description" content="Donate to climb the leaderboard">
+  <meta name="theme-color" content="#000000">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="DONATE GAME">
+  <meta property="og:description" content="Donate to climb the leaderboard">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://donategame.com">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="DONATE GAME">
+  <meta name="twitter:description" content="Donate to climb the leaderboard">
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -32,7 +48,7 @@
       color: var(--green);
       font-family: "Press Start 2P", ui-monospace, monospace;
       image-rendering: pixelated;
-      overflow:hidden;
+      overflow-x:hidden;
     }
 
 
@@ -45,7 +61,6 @@
       padding: 24px 20px;
       position: relative;
       z-index: 2;
-      overflow: hidden;
     }
 
 
@@ -56,8 +71,8 @@
     /* LOGO TOP */
     .titleWrap{
       text-align:center;
-      margin-bottom: 32px;
-      margin-top: 64px;
+      margin-bottom: 20px;
+      margin-top: 32px;
     }
     .title{
       margin:0;
@@ -73,7 +88,7 @@
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap: 32px;
+      gap: 18px;
       width:100%;
     }
 
@@ -91,7 +106,7 @@
       font-size: 13px;
       letter-spacing: 3px;
       color: var(--green);
-      margin-top: 30px;
+      margin-top: 28px;
       margin-bottom: 0;
       text-transform: uppercase;
       text-align:center;
@@ -110,9 +125,8 @@
     }
 
     .row{
-      display:grid;
-      grid-template-columns: 32px 1fr 140px;
-      gap: 16px;
+      display:flex;
+      gap: 8px;
       padding: 6px 0;
       align-items:baseline;
       white-space:nowrap;
@@ -121,6 +135,7 @@
     .rank{
       color: var(--greenDim);
       text-align:right;
+      min-width:32px;
     }
 
     .name{
@@ -131,6 +146,7 @@
     .score{
       color: var(--gold);
       text-align:right;
+      margin-left:auto;
     }
 
     /* FIRST PLACE */
@@ -138,8 +154,12 @@
       line-height: 2.2;
       letter-spacing: 0.5px;
     }
-    .row.first .name{
-      color: var(--greenBright);
+    .dots{
+      flex:1;
+      overflow:hidden;
+      color: rgba(124,255,176,.12);
+      margin:0 4px;
+      min-width:6px;
     }
     .row.first .score{
       color: var(--gold);
@@ -186,10 +206,10 @@
       }
       .layout{ gap: 28px; }
       .row{
-        grid-template-columns: 28px 1fr 100px;
-        gap: 12px;
+        gap: 6px;
         font-size: 12px;
       }
+      .rank{ min-width:28px; }
       .row.first{ font-size: 15px; }
     }
 
@@ -421,7 +441,6 @@
     .btn-secondary{
       border-color: var(--greenDim);
       color: var(--greenDim);
-      font-size:10px;
     }
     .btn-secondary:hover{
       border-color: var(--green);
@@ -465,6 +484,16 @@
       letter-spacing:1px;
       min-width:100px;
       text-align:center;
+    }
+
+    .legal{
+      font-size:7px;
+      color:var(--greenDim);
+      opacity:0.4;
+      text-align:center;
+      line-height:1.8;
+      letter-spacing:0.5px;
+      margin-top:500px;
     }
 
     /* ANIMATIONS */
@@ -535,10 +564,10 @@
       }
       .colTitle{ font-size: 9px; }
       .row{
-        grid-template-columns:24px 1fr 90px;
-        gap:10px;
+        gap:6px;
         font-size:11px;
       }
+      .rank{ min-width:24px; }
       .row.first{ font-size:14px; }
       .name{
         overflow:hidden;
@@ -601,28 +630,24 @@
       </div>
 
       <section class="layout">
-        <div class="footerText">Donate to appear higher in the leaderboard</div>
+        <div class="footerText">Donate to climb the leaderboard</div>
 
-        <button class="btn">DONATE</button>
+        <button class="btn" style="margin-top:18px">DONATE</button>
 
         <div class="colTitle">ALL TIME GREATEST</div>
 
-        <ol class="list" aria-label="Donation leaderboard">
-          <li class="row first"><span class="rank">1</span><span class="name">DRL</span><span class="score">$999975</span></li>
-          <li class="row"><span class="rank">2</span><span class="name">SAM</span><span class="score">$18315</span></li>
-          <li class="row"><span class="rank">3</span><span class="name">YOU</span><span class="score">$4010</span></li>
-          <li class="row"><span class="rank">4</span><span class="name">PGD</span><span class="score">$14285</span></li>
-          <li class="row"><span class="rank">5</span><span class="name">CRB</span><span class="score">$12520</span></li>
-          <li class="row"><span class="rank">6</span><span class="name">MRS</span><span class="score">$11015</span></li>
-          <li class="row"><span class="rank">7</span><span class="name">ZSR</span><span class="score">$8265</span></li>
-          <li class="row"><span class="rank">8</span><span class="name">TMH</span><span class="score">$6010</span></li>
-        </ol>
+        <ol class="list" aria-label="Donation leaderboard"></ol>
 
         <div class="pagination" id="pagination" hidden>
           <button class="btn btn-page" id="prevPage" aria-label="Previous page">← PREV</button>
           <div class="page-info" id="pageInfo">PAGE 1</div>
           <button class="btn btn-page" id="nextPage" aria-label="Next page">NEXT →</button>
         </div>
+
+        <footer class="legal">
+          &copy; 2026 DONATEGAME.COM<br>
+          THIS IS NOT A CHARITY. ALL DONATIONS ARE VOLUNTARY AND NON-REFUNDABLE.
+        </footer>
       </section>
     </main>
   </div>
