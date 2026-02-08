@@ -183,7 +183,43 @@ function setupNickCheck() {
   });
 }
 
-// ==================== PAYPAL FLOW ====================
+function setupAmountInput() {
+  const amountInput = document.getElementById('amount');
+  const amountHint = document.getElementById('amountHint');
+  if (!amountInput) return;
+
+  // Prevent decimals and non-numeric input
+  amountInput.addEventListener('input', (e) => {
+    // Remove any non-digit characters
+    let value = e.target.value.replace(/[^\d]/g, '');
+    // Limit to 100000
+    if (value && parseInt(value) > 100000) {
+      value = '100000';
+    }
+    e.target.value = value;
+  });
+
+  // Prevent decimal point and minus on keypress
+  amountInput.addEventListener('keypress', (e) => {
+    if (e.key === '.' || e.key === '-' || e.key === 'e' || e.key === '+') {
+      e.preventDefault();
+    }
+  });
+
+  // Show error hint if below minimum
+  amountInput.addEventListener('blur', () => {
+    const value = parseInt(amountInput.value);
+    if (amountInput.value && value < 1) {
+      amountHint.textContent = 'MINIMUM $1';
+      amountHint.style.color = '#FF3B3B';
+    } else {
+      amountHint.textContent = 'USD, $1 - $100,000';
+      amountHint.style.color = '';
+    }
+  });
+}
+
+// ==================== PAYMENT FLOW ====================
 
 // Check if mock mode is enabled via URL parameter
 const isMockMode = new URLSearchParams(window.location.search).has('mock');
@@ -197,14 +233,14 @@ async function createPayPalOrder(nick, amount) {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || 'Failed to create order');
+    throw new Error(text || 'Failed to create PayPal order');
   }
 
   return await res.json();
 }
 
-async function mockDonate(nick, amount) {
-  const res = await fetch('/api/mock-donate', {
+async function createCryptoInvoice(nick, amount) {
+  const res = await fetch('/api/create-crypto-invoice', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nick, amount }),
@@ -212,75 +248,109 @@ async function mockDonate(nick, amount) {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || 'Mock donation failed');
+    throw new Error(text || 'Failed to create crypto invoice');
   }
 
   return await res.json();
 }
 
-async function handleDonateSubmit(e) {
-  e.preventDefault();
+function mockDonate(nick, amount) {
+  const existing = FALLBACK_LEADERBOARD.top.find(
+    entry => entry.nick.toLowerCase() === nick.toLowerCase()
+  );
 
+  if (existing) {
+    existing.total += amount;
+  } else {
+    FALLBACK_LEADERBOARD.top.push({ nick, total: amount });
+  }
+
+  FALLBACK_LEADERBOARD.top.sort((a, b) => b.total - a.total);
+  renderLeaderboard(FALLBACK_LEADERBOARD);
+
+  return { success: true, nick, amount };
+}
+
+function getFormValues() {
   const nickInput = document.getElementById('nick');
   const amountInput = document.getElementById('amount');
 
-  const nickRaw = nickInput.value;
-  const amountRaw = amountInput.value;
+  const nick = sanitizeNick(nickInput.value);
+  const amount = normalizeAmount(amountInput.value);
 
-  const nick = sanitizeNick(nickRaw);
-  const amount = normalizeAmount(amountRaw);
-
-  // Validation
   if (!nick) {
     showFormError(ERROR_MESSAGES.INVALID_NICK);
     nickInput.focus();
-    return;
+    return null;
   }
 
   if (amount === null) {
     showFormError(ERROR_MESSAGES.INVALID_AMOUNT);
     amountInput.focus();
-    return;
+    return null;
   }
+
+  return { nick, amount };
+}
+
+async function handleCryptoPayment() {
+  const values = getFormValues();
+  if (!values) return;
 
   try {
     setFormLoading(true);
 
-    // Check network connectivity
-    if (!navigator.onLine) {
-      throw new Error('NETWORK');
-    }
+    if (!navigator.onLine) throw new Error('NETWORK');
 
     if (isMockMode) {
-      // Mock mode: instantly add donation without PayPal
-      await mockDonate(nick, amount);
-
-      // Close modal and show success
+      mockDonate(values.nick, values.amount);
       closeDonateModal();
-
-      // Trigger immediate leaderboard refresh
-      setTimeout(() => {
-        pollLeaderboard();
-      }, 500);
-
-    } else {
-      // Real mode: redirect to PayPal
-      const { approveUrl } = await createPayPalOrder(nick, amount);
-
-      if (!approveUrl) {
-        throw new Error('No approval URL returned');
-      }
-
-      // Redirect to PayPal
-      window.location.href = approveUrl;
+      return;
     }
 
+    const { checkoutUrl } = await createCryptoInvoice(values.nick, values.amount);
+
+    if (!checkoutUrl) throw new Error('No checkout URL returned');
+
+    window.location.href = checkoutUrl;
   } catch (error) {
     setFormLoading(false);
+    console.error('Crypto payment error:', error);
 
+    if (error.message === 'NETWORK' || !navigator.onLine) {
+      showFormError(ERROR_MESSAGES.NETWORK);
+    } else {
+      showFormError(ERROR_MESSAGES.UNKNOWN);
+    }
+  }
+}
+
+async function handleDonateSubmit(e) {
+  e.preventDefault();
+
+  const values = getFormValues();
+  if (!values) return;
+
+  try {
+    setFormLoading(true);
+
+    if (!navigator.onLine) throw new Error('NETWORK');
+
+    if (isMockMode) {
+      mockDonate(values.nick, values.amount);
+      closeDonateModal();
+      return;
+    }
+
+    const { approveUrl } = await createPayPalOrder(values.nick, values.amount);
+
+    if (!approveUrl) throw new Error('No approval URL returned');
+
+    window.location.href = approveUrl;
+  } catch (error) {
+    setFormLoading(false);
     console.error('Donation error:', error);
 
-    // Determine error message
     if (error.message === 'NETWORK' || !navigator.onLine) {
       showFormError(ERROR_MESSAGES.NETWORK);
     } else if (error.message.toLowerCase().includes('nick')) {
@@ -298,14 +368,23 @@ async function handleDonateSubmit(e) {
 // ==================== LEADERBOARD ====================
 
 let previousLeaderboard = [];
+let currentPage = 1;
+const itemsPerPage = 20;
 
 function renderLeaderboard(data) {
   const list = document.querySelector('.list');
   const current = data.top || [];
+  const totalItems = current.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Calculate slice indices for current page
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const endIdx = startIdx + itemsPerPage;
+  const pageItems = current.slice(startIdx, endIdx);
 
   // Create new items
-  const newItems = current.map((row, idx) => {
-    const rank = idx + 1;
+  const newItems = pageItems.map((row, pageIdx) => {
+    const rank = startIdx + pageIdx + 1;
     const isFirst = rank === 1;
 
     // Check if this is a new entry or score changed
@@ -343,7 +422,53 @@ function renderLeaderboard(data) {
 
   // Store current data for next comparison
   previousLeaderboard = current.map(r => ({ nick: r.nick, total: r.total }));
+
+  // Update pagination controls
+  updatePagination(totalPages, totalItems);
 }
+
+function updatePagination(totalPages, totalItems) {
+  const pagination = document.getElementById('pagination');
+  const prevBtn = document.getElementById('prevPage');
+  const nextBtn = document.getElementById('nextPage');
+  const pageInfo = document.getElementById('pageInfo');
+
+  if (!pagination || !prevBtn || !nextBtn || !pageInfo) return;
+
+  // Show pagination only if more than one page
+  if (totalPages > 1) {
+    pagination.hidden = false;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+    pageInfo.textContent = `PAGE ${currentPage} OF ${totalPages}`;
+  } else {
+    pagination.hidden = true;
+  }
+}
+
+function goToPage(page) {
+  const totalPages = Math.ceil(previousLeaderboard.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+
+  currentPage = page;
+  pollLeaderboard();
+}
+
+// Fallback data when API is unavailable
+const FALLBACK_LEADERBOARD = {
+  top: [
+    { nick: 'DRL', total: 999975 },
+    { nick: 'SAM', total: 18315 },
+    { nick: 'YOU', total: 14010 },
+    { nick: 'PGD', total: 12285 },
+    { nick: 'CRB', total: 10520 },
+    { nick: 'MRS', total: 9015 },
+    { nick: 'ZSR', total: 7265 },
+    { nick: 'TMH', total: 5010 },
+  ]
+};
+
+let hasLoadedOnce = false;
 
 async function pollLeaderboard() {
   try {
@@ -351,10 +476,14 @@ async function pollLeaderboard() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
+    hasLoadedOnce = true;
     renderLeaderboard(data);
   } catch (e) {
-    // Don't show error to user, just log
     console.error('Leaderboard fetch failed:', e);
+    // Show fallback data if never loaded successfully
+    if (!hasLoadedOnce) {
+      renderLeaderboard(FALLBACK_LEADERBOARD);
+    }
   }
 }
 
@@ -363,6 +492,12 @@ async function pollLeaderboard() {
 let pollTimer = null;
 
 function startPolling() {
+  // In mock mode, just render fallback data and don't poll API
+  if (isMockMode) {
+    renderLeaderboard(FALLBACK_LEADERBOARD);
+    return;
+  }
+
   // Initial load
   pollLeaderboard();
 
@@ -410,24 +545,53 @@ function init() {
     });
   }
 
-  // Close on ESC key
+  // Close on ESC key + pagination keyboard navigation
   document.addEventListener('keydown', (e) => {
+    const modal = document.getElementById('donateModal');
+
     if (e.key === 'Escape') {
-      const modal = document.getElementById('donateModal');
       if (modal && !modal.hidden) {
         closeDonateModal();
       }
     }
+
+    // Arrow key navigation for pagination (only when modal is closed)
+    if (modal && modal.hidden) {
+      if (e.key === 'ArrowLeft') {
+        goToPage(currentPage - 1);
+      } else if (e.key === 'ArrowRight') {
+        goToPage(currentPage + 1);
+      }
+    }
   });
 
-  // Form submit
+  // Form submit (PayPal button)
   const donateForm = document.getElementById('donateForm');
   if (donateForm) {
     donateForm.addEventListener('submit', handleDonateSubmit);
   }
 
+  // Crypto button
+  const cryptoBtn = document.getElementById('payCrypto');
+  if (cryptoBtn) {
+    cryptoBtn.addEventListener('click', handleCryptoPayment);
+  }
+
   // Setup nick check
   setupNickCheck();
+
+  // Setup amount input validation
+  setupAmountInput();
+
+  // Setup pagination
+  const prevBtn = document.getElementById('prevPage');
+  const nextBtn = document.getElementById('nextPage');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+  }
 
   // Start polling leaderboard
   startPolling();

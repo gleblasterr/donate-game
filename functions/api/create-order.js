@@ -1,6 +1,10 @@
 async function getPayPalAccessToken(env) {
-    const auth = btoa(`${env.PAYPAL_CLIENT_ID}:${env.PAYPAL_SECRET}`);
-    const res = await fetch(env.PAYPAL_BASE_URL + "/v1/oauth2/token", {
+    const clientId = (env.PAYPAL_CLIENT_ID || "").trim();
+    const secret = (env.PAYPAL_SECRET || "").trim();
+    const baseUrl = (env.PAYPAL_BASE_URL || "").trim();
+
+    const auth = btoa(`${clientId}:${secret}`);
+    const res = await fetch(baseUrl + "/v1/oauth2/token", {
       method: "POST",
       headers: {
         "Authorization": `Basic ${auth}`,
@@ -39,8 +43,8 @@ async function getPayPalAccessToken(env) {
         application_context: {
           brand_name: "DONATE GAME",
           user_action: "PAY_NOW",
-          return_url: env.APP_BASE_URL + "/thanks.html",
-          cancel_url: env.APP_BASE_URL + "/"
+          return_url: "https://donategame.com/?paid=1",
+          cancel_url: "https://donategame.com/"
         }
       })
     });

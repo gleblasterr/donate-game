@@ -10,10 +10,6 @@ pages_build_output_dir = "public"
 binding = "DONATE_KV"
 id = "136b002b3b314090a05c9667ab168555"
 
-# Public переменные окружения
-[env.production.vars]
-APP_BASE_URL = "https://your-domain.pages.dev"
-
 # ВАЖНО: Секреты устанавливаются через Cloudflare dashboard
 # (НЕ коммитить их в git!)
 #
@@ -30,3 +26,12 @@ APP_BASE_URL = "https://your-domain.pages.dev"
 # wrangler secret put PAYPAL_SECRET
 # wrangler secret put PAYPAL_BASE_URL
 # wrangler secret put PAYPAL_WEBHOOK_ID
+#
+# BTCPay Server (crypto payments):
+# - BTCPAY_URL              (https://pay.donategame.com)
+# - BTCPAY_STORE_ID         (Store ID из BTCPay)
+# - BTCPAY_API_KEY          (API key с правами cancreateinvoice, canviewinvoices)
+#
+# wrangler secret put BTCPAY_URL
+# wrangler secret put BTCPAY_STORE_ID
+# wrangler secret put BTCPAY_API_KEY
